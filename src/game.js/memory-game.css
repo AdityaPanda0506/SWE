@@ -1,0 +1,91 @@
+body {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
+  text-align: center;
+  margin: 0;
+  padding: 0;
+}
+
+h1 {
+  color: #5f2c82;
+  margin-top: 30px;
+}
+
+#stats {
+  margin: 20px auto 10px auto;
+  font-size: 1.2em;
+  color: #5f2c82;
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+}
+
+#reset-btn {
+  padding: 10px 28px;
+  font-size: 1.1em;
+  background: linear-gradient(90deg, #5f2c82 0%, #49a09d 100%);
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(95,44,130,0.15);
+  transition: background 0.2s;
+  margin-bottom: 20px;
+}
+
+#reset-btn:hover {
+  background: linear-gradient(90deg, #49a09d 0%, #5f2c82 100%);
+}
+
+#game-board {
+  display: grid;
+  grid-template-columns: repeat(4, 80px);
+  grid-template-rows: repeat(4, 80px);
+  gap: 16px;
+  justify-content: center;
+  margin: 0 auto 30px auto;
+  max-width: 400px;
+}
+
+.card {
+  width: 80px;
+  height: 80px;
+  perspective: 600px;
+  cursor: pointer;
+}
+
+.card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.4s;
+  transform-style: preserve-3d;
+}
+
+.card.flipped .card-inner {
+  transform: rotateY(180deg);
+}
+
+.card-front, .card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2em;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.card-front {
+  background: #fff;
+  color: #5f2c82;
+}
+
+.card-back {
+  background: linear-gradient(135deg, #49a09d 0%, #5f2c82 100%);
+  color: #fff;
+  transform: rotateY(180deg);
+} 

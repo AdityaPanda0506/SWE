@@ -112,9 +112,7 @@ export default function Session() {
           <WebcamFeed emotion={emotion} score={score} confidence={confidence} isSleeping={isSleeping} />
 
           <div className="stats-box">
-            <h3>🎯 Focus Score: {score}/10</h3>
-            <p><strong>Current Emotion:</strong> {emotion}</p>
-            <p><strong>Confidence:</strong> {parseFloat(confidence).toFixed(2)}</p>
+            <h3>🎯 Focus Score: {(10/6)*score}/10</h3>
             {isSleeping && <p style={{ color: 'red' }}><strong>Sleep Detected!</strong></p>}
           </div>
         </div>

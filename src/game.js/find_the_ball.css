@@ -1,0 +1,65 @@
+body {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+  text-align: center;
+  margin: 0;
+  padding: 0;
+}
+
+h1 {
+  color: #ff4e50;
+  margin-top: 30px;
+}
+
+#game-container {
+  position: relative;
+  width: 400px;
+  height: 400px;
+  margin: 30px auto;
+  background: #fffbe7;
+  border: 4px solid #ff4e50;
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+#dot {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  background: radial-gradient(circle, #43cea2 0%, #185a9d 100%);
+  border-radius: 50%;
+  cursor: pointer;
+  display: none;
+  box-shadow: 0 4px 12px rgba(67,206,162,0.3);
+  transition: box-shadow 0.2s;
+}
+
+#dot:active {
+  box-shadow: 0 0 0 0 #43cea2;
+}
+
+#scoreboard {
+  margin: 20px auto;
+  font-size: 1.5em;
+  color: #185a9d;
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+}
+
+#start-btn {
+  padding: 12px 32px;
+  font-size: 1.2em;
+  background: linear-gradient(90deg, #ff4e50 0%, #f9d423 100%);
+  color: #fff;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(255,78,80,0.2);
+  transition: background 0.2s;
+}
+
+#start-btn:hover {
+  background: linear-gradient(90deg, #f9d423 0%, #ff4e50 100%);
+}

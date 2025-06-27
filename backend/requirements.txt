@@ -1,0 +1,7 @@
+Flask
+opencv-python
+numpy
+Pillow
+Flask-Cors
+mediapipe
+deepface
