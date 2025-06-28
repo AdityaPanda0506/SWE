@@ -124,7 +124,7 @@ export default function WebcamFeed({ emotion, score, confidence, isSleeping }) {
       {/* Emotion Overlay */}
       <div className="overlay" style={{ marginTop: '1rem' }}>
         <p><strong>Emotion:</strong> {current.emotion}</p>
-        <p><strong>Score:</strong> {parseFloat(current.score).toFixed(2)} / 10</p>
+        <p><strong>Score:</strong> {parseFloat((current.score)*10/6).toFixed(2)} / 10</p>
         <p><strong>Confidence:</strong> {parseFloat(current.confidence).toFixed(2)}</p>
         {current.is_sleeping && (
           <p style={{ color: 'red' }}><strong>Sleep Detected!</strong></p>

@@ -1,33 +1,26 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Home, Plus, Check, X, Star } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Plus, Trash2, Edit, Search, ChevronDown, ChevronUp } from 'lucide-react';
 import './TodoPage.css';
 
-const TodoPage = () => {
-  const [todos, setTodos] = useState([
-    { id: 1, text: 'Complete project proposal', completed: false, priority: 'high', category: 'Work' },
-    { id: 2, text: 'Review team feedback', completed: false, priority: 'medium', category: 'Work' },
-    { id: 3, text: 'Plan weekend trip', completed: true, priority: 'low', category: 'Personal' }
-  ]);
-  const [newTodo, setNewTodo] = useState('');
-  const [filter, setFilter] = useState('all');
+const initialTodos = [
+  { id: 1, text: 'Finalize Q3 marketing report', completed: false, priority: 'high', category: 'Work', dueDate: '2025-07-15' },
+  { id: 2, text: 'Schedule team offsite event', completed: false, priority: 'medium', category: 'Work', dueDate: '2025-07-22' },
+  { id: 3, text: 'Book flights for vacation', completed: true, priority: 'high', category: 'Personal', dueDate: '2025-06-30' },
+  { id: 4, text: 'Renew gym membership', completed: false, priority: 'low', category: 'Personal', dueDate: '2025-08-01' },
+  { id: 5, text: 'Update project documentation', completed: false, priority: 'medium', category: 'Work', dueDate: '2025-07-18' },
+];
 
-  const addTodo = () => {
-    if (newTodo.trim()) {
-      const todo = {
-        id: Date.now(),
-        text: newTodo,
-        completed: false,
-        priority: 'medium',
-        category: 'General'
-      };
-      setTodos([todo, ...todos]);
-      setNewTodo('');
-    }
-  };
+const TodoPage = () => {
+  const [todos, setTodos] = useState(initialTodos);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredTodos = useMemo(() =>
+    todos.filter(todo =>
+      todo.text.toLowerCase().includes(searchTerm.toLowerCase())
+    ), [todos, searchTerm]);
 
   const toggleTodo = (id) => {
-    setTodos(todos.map(todo => 
+    setTodos(todos.map(todo =>
       todo.id === id ? { ...todo, completed: !todo.completed } : todo
     ));
   };
@@ -36,92 +29,72 @@ const TodoPage = () => {
     setTodos(todos.filter(todo => todo.id !== id));
   };
 
-  const filteredTodos = todos.filter(todo => {
-    if (filter === 'completed') return todo.completed;
-    if (filter === 'pending') return !todo.completed;
-    return true;
-  });
-
   return (
-    <div className="todo-page">
-      <nav className="nav-bar">
-        <Link to="/" className="nav-link">
-          <Home size={20} />
-          <span>Home</span>
-        </Link>
-      </nav>
-
-      <div className="todo-container">
-        <div className="todo-card">
-          <div className="todo-header">
-            <h1>Task Manager</h1>
-            <div className="pending-badge">
-              {todos.filter(t => !t.completed).length} pending
-            </div>
-          </div>
-
-          <div className="add-todo">
+    <div className="todo-table-container">
+      <header className="todo-table-header">
+        <h1>My Tasks</h1>
+        <div className="header-actions">
+          <div className="search-bar">
+            <Search size={18} className="search-icon" />
             <input
               type="text"
-              value={newTodo}
-              onChange={(e) => setNewTodo(e.target.value)}
-              placeholder="Add a new task..."
-              onKeyPress={(e) => e.key === 'Enter' && addTodo()}
-              className="todo-input"
+              placeholder="Search tasks..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <button onClick={addTodo} className="add-btn">
-              <Plus size={20} />
-            </button>
           </div>
-
-          <div className="filter-tabs">
-            {['all', 'pending', 'completed'].map(filterType => (
-              <button
-                key={filterType}
-                onClick={() => setFilter(filterType)}
-                className={`filter-btn ${filter === filterType ? 'active' : ''}`}
-              >
-                {filterType.charAt(0).toUpperCase() + filterType.slice(1)}
-              </button>
-            ))}
-          </div>
-
-          <div className="todo-list">
-            {filteredTodos.map(todo => (
-              <div key={todo.id} className={`todo-item ${todo.completed ? 'completed' : ''}`}>
-                <button
-                  onClick={() => toggleTodo(todo.id)}
-                  className={`check-btn ${todo.completed ? 'checked' : ''}`}
-                >
-                  {todo.completed && <Check size={16} />}
-                </button>
-                
-                <div className="todo-content">
-                  <p className="todo-text">{todo.text}</p>
-                  <div className="todo-meta">
-                    <span className={`priority-badge ${todo.priority}`}>
-                      {todo.priority}
-                    </span>
-                    <span className="category-badge">{todo.category}</span>
-                  </div>
-                </div>
-                
-                <button
-                  onClick={() => deleteTodo(todo.id)}
-                  className="delete-btn"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-            ))}
-          </div>
-
-          {filteredTodos.length === 0 && (
-            <div className="empty-state">
-              <p>No tasks {filter !== 'all' ? filter : 'yet'}. Add one above!</p>
-            </div>
-          )}
+          <button className="add-task-button">
+            <Plus size={16} />
+            Add New Task
+          </button>
         </div>
+      </header>
+
+      <div className="table-wrapper">
+        <table className="task-table">
+          <thead>
+            <tr>
+              <th className="col-status">Status</th>
+              <th className="col-task">Task</th>
+              <th className="col-priority">Priority</th>
+              <th className="col-due-date">Due Date</th>
+              <th className="col-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredTodos.map(todo => (
+              <tr key={todo.id} className={`${todo.completed ? 'completed' : ''}`}>
+                <td className="col-status">
+                  <input 
+                    type="checkbox" 
+                    checked={todo.completed} 
+                    onChange={() => toggleTodo(todo.id)}
+                    className="task-checkbox"
+                  />
+                </td>
+                <td className="col-task">
+                  <div className="task-details">
+                    <span className="task-text">{todo.text}</span>
+                    <span className="task-category">{todo.category}</span>
+                  </div>
+                </td>
+                <td className="col-priority">
+                  <span className={`priority-badge ${todo.priority}`}>{todo.priority}</span>
+                </td>
+                <td className="col-due-date">{todo.dueDate}</td>
+                <td className="col-actions">
+                  <button className="action-btn edit-btn"><Edit size={16} /></button>
+                  <button className="action-btn delete-btn" onClick={() => deleteTodo(todo.id)}><Trash2 size={16} /></button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {filteredTodos.length === 0 && (
+          <div className="empty-state">
+            <p>No tasks found. Try a different search or add a new task!</p>
+          </div>
+        )}
       </div>
     </div>
   );

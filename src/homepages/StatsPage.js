@@ -1,117 +1,125 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Home, BarChart3, TrendingUp, Calendar, Zap } from 'lucide-react';
+import { BarChart3, TrendingUp, Zap, CheckCircle, Target, Award, Calendar, ChevronDown, Lightbulb } from 'lucide-react';
 import './StatsPage.css';
 
-const StatsPage = () => {
-  const stats = {
-    todayFocus: 120,
-    weeklyGoal: 600,
-    tasksCompleted: 8,
-    habitsStreak: 5,
-    weeklyTasks: [12, 8, 15, 10, 8, 6, 0]
-  };
+// Mock Data
+const mockData = {
+  kpis: {
+    focusTime: { value: '3h 45m', trend: '+15%' },
+    tasksCompleted: { value: 12, trend: '+5%' },
+    habitStreak: { value: '8 days', trend: 'same' },
+    avgFocusScore: { value: 88, trend: '+3%' },
+  },
+  focusTrend: [65, 70, 85, 80, 90, 75, 95],
+  activity: Array.from({ length: 180 }, () => Math.floor(Math.random() * 5)),
+  goals: {
+    dailyFocus: { current: 225, goal: 300 },
+    weeklyTasks: { current: 45, goal: 50 },
+  },
+  insights: [
+    'You are most productive in the morning. Schedule your most important tasks then.',
+    'Your focus drops after 90 minutes. Try taking short breaks.',
+    'Consistency is key! You have maintained your reading habit for 8 days straight.',
+  ]
+};
 
-  const focusProgress = (stats.todayFocus / (stats.weeklyGoal / 7)) * 100;
-
+const KPICard = ({ icon, title, value, trend }) => {
+  const trendColor = trend.startsWith('+') ? 'text-green-400' : trend.startsWith('-') ? 'text-red-400' : 'text-gray-400';
   return (
-    <div className="stats-page">
-      <nav className="nav-bar">
-        <Link to="/" className="nav-link">
-          <Home size={20} />
-          <span>Home</span>
-        </Link>
-      </nav>
+    <div className="kpi-card">
+      <div className="kpi-icon">{icon}</div>
+      <div className="kpi-content">
+        <p className="kpi-title">{title}</p>
+        <p className="kpi-value">{value}</p>
+      </div>
+      <p className={`kpi-trend ${trendColor}`}>{trend}</p>
+    </div>
+  );
+};
 
-      <div className="stats-container">
-        <div className="stats-card">
-          <div className="stats-header">
-            <BarChart3 size={24} />
-            <h1>Productivity Analytics</h1>
-          </div>
+const ActivityHeatmap = ({ data }) => (
+  <div className="activity-heatmap">
+    <div className="heatmap-grid">
+      {data.map((level, i) => (
+        <div key={i} className="heatmap-cell" data-level={level} />
+      ))}
+    </div>
+  </div>
+);
 
-          <div className="stats-grid">
-            <div className="stat-item">
-              <div className="stat-icon orange">
-                <Zap size={20} />
-              </div>
-              <div className="stat-content">
-                <h3>Focus Time</h3>
-                <p className="stat-value">{stats.todayFocus} min</p>
-                <div className="progress-bar">
-                  <div className="progress-fill" style={{ width: `${focusProgress}%` }}></div>
-                </div>
-                <p className="stat-subtitle">Goal: {Math.round(stats.weeklyGoal / 7)}min/day</p>
-              </div>
-            </div>
+const RadialProgress = ({ percentage, label }) => {
+  const strokeDasharray = 2 * Math.PI * 45;
+  const strokeDashoffset = strokeDasharray - (strokeDasharray * percentage) / 100;
+  return (
+    <div className="radial-progress">
+      <svg viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="45" className="progress-bg" />
+        <circle cx="50" cy="50" r="45" className="progress-bar" style={{ strokeDasharray, strokeDashoffset }} />
+      </svg>
+      <div className="progress-text">{percentage}%</div>
+      <p className="progress-label">{label}</p>
+    </div>
+  );
+};
 
-            <div className="stat-item">
-              <div className="stat-icon blue">
-                <Calendar size={20} />
-              </div>
-              <div className="stat-content">
-                <h3>Tasks Completed</h3>
-                <p className="stat-value">{stats.tasksCompleted}</p>
-                <div className="progress-bar">
-                  <div className="progress-fill" style={{ width: '80%' }}></div>
-                </div>
-                <p className="stat-subtitle">Great progress today!</p>
-              </div>
-            </div>
+const StatsPage = () => {
+  return (
+    <div className="stats-page-container">
+      <header className="stats-header">
+        <div className="header-left">
+          <BarChart3 size={28} />
+          <h1>Your Analytics Dashboard</h1>
+        </div>
+        <div className="header-right">
+          <button className="date-range-btn">
+            <span>Last 7 Days</span>
+            <ChevronDown size={20} />
+          </button>
+        </div>
+      </header>
 
-            <div className="stat-item">
-              <div className="stat-icon purple">
-                <TrendingUp size={20} />
-              </div>
-              <div className="stat-content">
-                <h3>Habit Streak</h3>
-                <p className="stat-value">{stats.habitsStreak} days</p>
-                <div className="progress-bar">
-                  <div className="progress-fill" style={{ width: '85%' }}></div>
-                </div>
-                <p className="stat-subtitle">Keep it going! 🔥</p>
-              </div>
-            </div>
-          </div>
+      <main className="stats-main-grid">
+        <div className="kpi-grid">
+          <KPICard icon={<Zap size={24} />} title="Total Focus Time" value={mockData.kpis.focusTime.value} trend={mockData.kpis.focusTime.trend} />
+          <KPICard icon={<CheckCircle size={24} />} title="Tasks Completed" value={mockData.kpis.tasksCompleted.value} trend={mockData.kpis.tasksCompleted.trend} />
+          <KPICard icon={<Target size={24} />} title="Current Habit Streak" value={mockData.kpis.habitStreak.value} trend={mockData.kpis.habitStreak.trend} />
+          <KPICard icon={<Award size={24} />} title="Avg. Focus Score" value={mockData.kpis.avgFocusScore.value} trend={mockData.kpis.avgFocusScore.trend} />
+        </div>
 
-          <div className="weekly-overview">
-            <h3>This Week's Performance</h3>
-            <div className="chart-container">
-              <div className="chart">
-                {stats.weeklyTasks.map((tasks, index) => (
-                  <div key={index} className="chart-bar">
-                    <div 
-                      className="bar"
-                      style={{ height: `${Math.max((tasks / 15) * 100, 5)}%` }}
-                    ></div>
-                    <span className="bar-label">
-                      {['M', 'T', 'W', 'T', 'F', 'S', 'S'][index]}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="insights">
-            <h3>Weekly Insights</h3>
-            <div className="insights-grid">
-              <div className="insight-card">
-                <h4>Most Productive Day</h4>
-                <p>Wednesday with 15 tasks</p>
-              </div>
-              <div className="insight-card">
-                <h4>Focus Sessions</h4>
-                <p>Average 2.5 hours/day</p>
-              </div>
-              <div className="insight-card">
-                <h4>Improvement</h4>
-                <p>+20% vs last week</p>
-              </div>
-            </div>
+        <div className="chart-container">
+          <h2>Focus Trend</h2>
+          {/* Placeholder for a proper chart library */}
+          <div className="line-chart-placeholder">
+            <svg width="100%" height="100%" viewBox="0 0 300 100" preserveAspectRatio="none">
+              <path d="M0,50 L50,30 L100,45 L150,25 L200,40 L250,60 L300,50" fill="none" stroke="#8a4fff" strokeWidth="2" />
+            </svg>
           </div>
         </div>
-      </div>
+
+        <div className="side-panel">
+          <div className="panel-widget">
+            <h3>Daily Activity</h3>
+            <ActivityHeatmap data={mockData.activity} />
+          </div>
+
+          <div className="panel-widget">
+            <h3>Goal Progress</h3>
+            <div className="goals-grid">
+              <RadialProgress percentage={Math.round((mockData.goals.dailyFocus.current / mockData.goals.dailyFocus.goal) * 100)} label="Daily Focus" />
+              <RadialProgress percentage={Math.round((mockData.goals.weeklyTasks.current / mockData.goals.weeklyTasks.goal) * 100)} label="Weekly Tasks" />
+            </div>
+          </div>
+
+          <div className="panel-widget">
+            <h3>Insights</h3>
+            <ul className="insights-list">
+              {mockData.insights.slice(0, 2).map((insight, i) => (
+                <li key={i}><Lightbulb size={16} /><span>{insight}</span></li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </main>
     </div>
   );
 };

@@ -1,46 +1,34 @@
-:root {
-  --background-color: #1f2937;
-  --surface-color: #2f3640;
-  --primary-color: #4f46e5;
-  --secondary-color: #7c3aed;
-  --text-color: #ffffff;
-  --text-color-secondary: #d1d5db;
-}
-
 .pomodoro-page {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
   padding: 2rem;
-  background-color: var(--background-color);
 }
 
 .pomodoro-container {
-  background-color: var(--surface-color);
+  background-color: var(--card-bg);
   border-radius: 20px;
-  padding: 2rem;
+  padding: 2.5rem;
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   text-align: center;
 }
 
-.timer-mode {
+.pomodoro-modes {
   display: flex;
   justify-content: center;
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
   background-color: var(--background-color);
   border-radius: 30px;
   padding: 0.5rem;
 }
 
 .mode-btn {
-  padding: 0.5rem 1.5rem;
+  padding: 0.75rem 1.5rem;
   border: none;
   background-color: transparent;
-  color: var(--text-color-secondary);
+  color: var(--text-secondary);
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
@@ -49,37 +37,38 @@
 }
 
 .mode-btn.active {
-  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-  color: var(--text-color);
+  background-color: var(--primary-color);
+  color: #fff;
 }
 
-.timer-display {
+.pomodoro-timer {
   position: relative;
   width: 250px;
   height: 250px;
-  margin: 0 auto 2rem;
+  margin: 0 auto 2.5rem;
 }
 
-.timer-svg {
+.pomodoro-timer svg {
   transform: rotate(-90deg);
 }
 
-.timer-circle {
+.timer-background,
+.timer-progress {
   fill: none;
-  stroke-width: 15px;
+  stroke-width: 18px;
 }
 
-.timer-circle.background {
-  stroke: var(--background-color);
+.timer-background {
+  stroke: var(--border-color);
 }
 
-.timer-circle.progress {
+.timer-progress {
   stroke: url(#progress-gradient);
   stroke-linecap: round;
   transition: stroke-dashoffset 1s linear;
 }
 
-.time-text {
+.pomodoro-time {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -89,58 +78,51 @@
   font-weight: 600;
 }
 
-.timer-controls {
+.pomodoro-controls {
   display: flex;
   justify-content: center;
-  gap: 1rem;
+  align-items: center;
+  gap: 1.5rem;
 }
 
 .control-btn {
-  padding: 1rem 2rem;
   border: none;
-  border-radius: 10px;
-  font-size: 1rem;
+  border-radius: 50%;
+  width: 56px;
+  height: 56px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: center;
+  background-color: var(--background-color);
+  color: var(--text-secondary);
 }
 
 .control-btn.primary {
-  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  color: #fff;
+}
+
+.control-btn.primary span {
+  font-size: 1.1rem;
+}
+
+.control-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.pomodoro-sessions {
+  margin-top: 2.5rem;
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+.pomodoro-sessions strong {
   color: var(--text-color);
-}
-
-.control-btn.primary:hover {
-  opacity: 0.9;
-}
-
-.control-btn.secondary {
-  background-color: var(--background-color);
-  color: var(--text-color-secondary);
-}
-
-.control-btn.secondary:hover {
-  color: var(--text-color);
-}
-
-.session-counter {
-  margin-top: 2rem;
-  color: var(--text-color-secondary);
-}
-
-/* SVG Gradient */
-.progress-gradient {
-  stop-color: var(--primary-color);
-  stop-opacity: 1;
-}
-
-.progress-gradient stop[offset="0"] {
-  stop-color: var(--primary-color);
-}
-
-.progress-gradient stop[offset="1"] {
-  stop-color: var(--secondary-color);
 }

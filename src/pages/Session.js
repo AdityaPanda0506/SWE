@@ -1,31 +1,25 @@
-// src/pages/Session/Session.js
-
 import React, { useEffect, useState, useRef } from 'react';
+import { Search, BrainCircuit } from 'lucide-react';
 import './Session.css';
 
-// Components
+// Assuming components are in src/components
 import VideoInput from '../components/VideoInput';
 import WebcamFeed from '../components/WebcamFeed';
 import BreakModal from '../components/BreakModal';
 import QuizModal from '../components/QuizModal';
 import SleepModal from '../components/SleepModal';
 
-export default function Session() {
+const Session = () => {
   const canvasRef = useRef(null);
   const [emotion, setEmotion] = useState("...");
-  const [score, setScore] = useState("");
-  const [feedback, setFeedback] = useState({
-    message: "",
-    resource: "",
-  });
+  const [score, setScore] = useState(0);
+  const [feedback, setFeedback] = useState({ message: "", resource: "" });
   const [breakTime, setBreakTime] = useState(false);
   const [showBreakModal, setShowBreakModal] = useState(false);
   const [showQuizModal, setShowQuizModal] = useState(false);
   const [showSleepModal, setShowSleepModal] = useState(false);
-  const [confidence, setConfidence] = useState(0);
   const [isSleeping, setIsSleeping] = useState(false);
 
-  // Frame capture every second
   useEffect(() => {
     const interval = setInterval(captureAndSendFrame, 1000);
     return () => clearInterval(interval);
@@ -48,18 +42,18 @@ export default function Session() {
       const res = await fetch("http://localhost:5000/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: base64Image })
+        body: JSON.stringify({ image: base64Image }),
       });
 
       const data = await res.json();
 
       if (data.emotion && data.score !== undefined) {
         setEmotion(data.emotion);
-        setScore(data.score.toFixed(2));
-        setConfidence(data.confidence || 0.6);
+        setScore(data.score);
         setIsSleeping(data.is_sleeping || false);
 
         if (data.feedback?.action === "break") {
+          setFeedback({ message: data.feedback.message, resource: data.feedback.resource });
           setShowBreakModal(true);
         } else if (data.learning_state === "Confused") {
           setShowQuizModal(true);
@@ -67,7 +61,6 @@ export default function Session() {
           setShowSleepModal(true);
         }
       }
-
     } catch (err) {
       console.error("Failed to send frame:", err);
     }
@@ -78,59 +71,62 @@ export default function Session() {
     setShowBreakModal(false);
     setBreakTime(true);
   };
-
   const handleTakeQuiz = () => {
     alert("Redirecting to quiz");
     setShowQuizModal(false);
   };
-
   const handleRest = () => {
     alert("Taking a break...");
     setShowSleepModal(false);
   };
 
+  const focusScorePercentage = (score / 6) * 100;
+
   return (
-    <div className="youtube-layout">
-      {/* Top Bar */}
-      <div className="top-bar">
-        <h1>🧠 AI Learning Coach</h1>
-        <form className="search-bar" onSubmit={(e) => e.preventDefault()}>
-          <input type="text" placeholder="Search topic or video..." />
-          <button type="submit">🔍</button>
+    <div className="session-page">
+      <header className="session-header">
+        <div className="session-title">
+          <BrainCircuit size={32} />
+          <h1>AI Learning Coach</h1>
+        </div>
+        <form className="search-form" onSubmit={(e) => e.preventDefault()}>
+          <Search className="search-icon" size={20} />
+          <input type="text" placeholder="Search for a topic or video..." />
         </form>
-      </div>
+      </header>
 
-      {/* Main Content Area - Left: Video | Right: Webcam */}
-      <div className="main-content">
-        {/* Left Side - YouTube Player */}
-        <div className="left-panel">
+      <div className="session-content">
+        <main className="video-panel">
           <VideoInput breakTime={breakTime} />
-        </div>
+        </main>
 
-        {/* Right Side - Webcam Feed & Stats */}
-        <div className="right-panel">
-          <WebcamFeed emotion={emotion} score={score} confidence={confidence} isSleeping={isSleeping} />
-
-          <div className="stats-box">
-            <h3>🎯 Focus Score: {(10/6)*score}/10</h3>
-            {isSleeping && <p style={{ color: 'red' }}><strong>Sleep Detected!</strong></p>}
+        <aside className="coach-panel">
+          <h2>Your Coach</h2>
+          <WebcamFeed emotion={emotion} score={score} isSleeping={isSleeping} />
+          <div className="focus-score-card">
+            <h3>Focus Score</h3>
+            <div className="focus-score-visual">
+              <div className="focus-score-bar" style={{ width: `${focusScorePercentage}%` }}></div>
+            </div>
+            <p>{Math.round(focusScorePercentage)}%</p>
           </div>
-        </div>
+          {isSleeping && <p className="sleep-warning">Sleep Detected!</p>}
+        </aside>
       </div>
 
-      {/* Modals */}
-      {showBreakModal && feedback.message && (
+      {showBreakModal && (
         <BreakModal
           message={feedback.message}
           onContinue={handleContinue}
           onTakeBreak={handleTakeAction}
         />
       )}
-
       {showQuizModal && <QuizModal onTakeQuiz={handleTakeQuiz} onSkip={() => setShowQuizModal(false)} />}
       {showSleepModal && <SleepModal onConfirm={handleRest} />}
 
       <canvas ref={canvasRef} style={{ display: 'none' }} />
     </div>
   );
-}
+};
+
+export default Session;

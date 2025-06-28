@@ -21,7 +21,6 @@ const PomodoroPage = () => {
   const totalSeconds = modes[mode] * 60;
   const currentSeconds = minutes * 60 + seconds;
   const progress = ((totalSeconds - currentSeconds) / totalSeconds) * circumference;
-  const progressOffset = circumference - progress;
 
   const switchMode = useCallback((newMode) => {
     setMode(newMode);
@@ -72,46 +71,45 @@ const PomodoroPage = () => {
   return (
     <div className="pomodoro-page">
       <div className="pomodoro-container">
-        <div className="timer-mode">
+        <div className="pomodoro-modes">
           <button onClick={() => switchMode('pomodoro')} className={`mode-btn ${mode === 'pomodoro' ? 'active' : ''}`}>Focus</button>
           <button onClick={() => switchMode('shortBreak')} className={`mode-btn ${mode === 'shortBreak' ? 'active' : ''}`}>Short Break</button>
           <button onClick={() => switchMode('longBreak')} className={`mode-btn ${mode === 'longBreak' ? 'active' : ''}`}>Long Break</button>
         </div>
 
-        <div className="timer-display">
-          <svg className="timer-svg" width="250" height="250" viewBox="0 0 250 250">
+        <div className="pomodoro-timer">
+          <svg width="250" height="250" viewBox="0 0 250 250">
             <defs>
-              <linearGradient id="progress-gradient">
-                <stop offset="0%" stopColor="var(--primary-color)" />
-                <stop offset="100%" stopColor="var(--secondary-color)" />
+              <linearGradient id="progress-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#6D28D9" />
+                <stop offset="100%" stopColor="#4F46E5" />
               </linearGradient>
             </defs>
-            <circle className="timer-circle background" cx="125" cy="125" r={radius} />
+            <circle className="timer-background" cx="125" cy="125" r={radius} />
             <circle
-              className="timer-circle progress"
+              className="timer-progress"
               cx="125"
               cy="125"
               r={radius}
               strokeDasharray={circumference}
-              strokeDashoffset={progressOffset}
+              strokeDashoffset={progress}
             />
           </svg>
-          <div className="time-text">{formatTime(minutes, seconds)}</div>
+          <div className="pomodoro-time">{formatTime(minutes, seconds)}</div>
         </div>
 
-        <div className="timer-controls">
+        <div className="pomodoro-controls">
           <button onClick={toggleTimer} className="control-btn primary">
             {isActive ? <Pause size={20} /> : <Play size={20} />}
-            {isActive ? 'Pause' : 'Start'}
+            <span>{isActive ? 'Pause' : 'Start'}</span>
           </button>
-          <button onClick={resetTimer} className="control-btn secondary">
+          <button onClick={resetTimer} className="control-btn">
             <RotateCcw size={20} />
-            Reset
           </button>
         </div>
 
-        <div className="session-counter">
-          <p>Completed Sessions: {sessions}</p>
+        <div className="pomodoro-sessions">
+          <p>Completed Sessions: <strong>{sessions}</strong></p>
         </div>
       </div>
     </div>

@@ -9,6 +9,7 @@
     "@testing-library/user-event": "^13.5.0",
     "lucide-react": "^0.524.0",
     "react": "^19.1.0",
+    "react-beautiful-dnd": "^13.1.1",
     "react-dom": "^19.1.0",
     "react-player": "^2.16.0",
     "react-router-dom": "^7.6.2",
