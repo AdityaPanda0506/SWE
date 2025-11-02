@@ -1,27 +1,31 @@
-import React from 'react';
-import { BarChart3, TrendingUp, Zap, CheckCircle, Target, Award, Calendar, ChevronDown, Lightbulb } from 'lucide-react';
+import React, { useContext, useMemo } from 'react';
+import { BarChart3, Zap, CheckCircle, Target, Award, Lightbulb, ChevronDown } from 'lucide-react';
+import { Line } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
 import './StatsPage.css';
+import { StatsContext } from '../contexts/StatsContext';
+import { TodoContext } from '../contexts/TodoContext';
 
-// Mock Data
-const mockData = {
-  kpis: {
-    focusTime: { value: '3h 45m', trend: '+15%' },
-    tasksCompleted: { value: 12, trend: '+5%' },
-    habitStreak: { value: '8 days', trend: 'same' },
-    avgFocusScore: { value: 88, trend: '+3%' },
-  },
-  focusTrend: [65, 70, 85, 80, 90, 75, 95],
-  activity: Array.from({ length: 180 }, () => Math.floor(Math.random() * 5)),
-  goals: {
-    dailyFocus: { current: 225, goal: 300 },
-    weeklyTasks: { current: 45, goal: 50 },
-  },
-  insights: [
-    'You are most productive in the morning. Schedule your most important tasks then.',
-    'Your focus drops after 90 minutes. Try taking short breaks.',
-    'Consistency is key! You have maintained your reading habit for 8 days straight.',
-  ]
-};
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
+// --- Helper Components from the original UI ---
 
 const KPICard = ({ icon, title, value, trend }) => {
   const trendColor = trend.startsWith('+') ? 'text-green-400' : trend.startsWith('-') ? 'text-red-400' : 'text-gray-400';
@@ -40,8 +44,8 @@ const KPICard = ({ icon, title, value, trend }) => {
 const ActivityHeatmap = ({ data }) => (
   <div className="activity-heatmap">
     <div className="heatmap-grid">
-      {data.map((level, i) => (
-        <div key={i} className="heatmap-cell" data-level={level} />
+      {data.map(({ date, level }) => (
+        <div key={date} className="heatmap-cell" data-level={level} title={`${date}: ${level} hours`} />
       ))}
     </div>
   </div>
@@ -62,7 +66,109 @@ const RadialProgress = ({ percentage, label }) => {
   );
 };
 
+
+// --- Main StatsPage Component ---
+
 const StatsPage = () => {
+  const { sessionHistory } = useContext(StatsContext);
+  const { tasks } = useContext(TodoContext);
+
+  const { dailyStats, focusTrend, activityData } = useMemo(() => {
+    const statsByDate = {};
+
+    (sessionHistory || []).forEach(log => {
+      const date = new Date(log.timestamp).toISOString().split('T')[0];
+      if (!statsByDate[date]) {
+        statsByDate[date] = { scoreSum: 0, count: 0 };
+      }
+      statsByDate[date].scoreSum += log.score;
+      statsByDate[date].count += 1; // Each log is 1 second
+    });
+
+    const sortedDates = Object.keys(statsByDate).sort();
+
+    // Data for Focus Trend (last 7 days with activity)
+    const lastSevenActiveDays = sortedDates.slice(-7);
+    const focusTrendData = {
+      labels: lastSevenActiveDays.map(d => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
+      datasets: [
+        {
+          label: 'Average Focus Score',
+          data: lastSevenActiveDays.map(d => (statsByDate[d].scoreSum / statsByDate[d].count)),
+          borderColor: '#8a4fff',
+          backgroundColor: 'rgba(138, 79, 255, 0.2)',
+          fill: true,
+          tension: 0.4,
+        },
+      ],
+    };
+
+    // Data for Activity Heatmap (last 180 days)
+    const heatmapData = [];
+    const today = new Date();
+    for (let i = 179; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - i);
+      const dateString = date.toISOString().split('T')[0];
+      const dayData = statsByDate[dateString];
+      const studyHours = dayData ? dayData.count / 3600 : 0;
+      heatmapData.push({
+        date: dateString,
+        level: Math.min(4, Math.ceil(studyHours)), // Levels 0-4
+      });
+    }
+
+    return { dailyStats: statsByDate, focusTrend: focusTrendData, activityData: heatmapData };
+  }, [sessionHistory]);
+
+
+  // --- Calculate overall KPIs ---
+  const totalFocusSeconds = sessionHistory?.length || 0;
+  const hours = Math.floor(totalFocusSeconds / 3600);
+  const minutes = Math.floor((totalFocusSeconds % 3600) / 60);
+  const focusTimeStr = `${hours}h ${minutes}m`;
+
+  const tasksCompleted = tasks?.filter(task => task.completed).length || 0;
+
+  const avgFocusScoreRaw = totalFocusSeconds > 0
+    ? sessionHistory.reduce((sum, entry) => sum + entry.score, 0) / totalFocusSeconds
+    : 0;
+  const avgFocusScorePercent = Math.round((avgFocusScoreRaw / 6) * 100);
+
+  // --- Mock/Placeholder Data for UI elements without context ---
+  const mockData = {
+    habitStreak: { value: '8 days', trend: 'same' }, // Placeholder
+    goals: {
+      dailyFocus: { current: totalFocusSeconds / 60, goal: 300 }, // Dynamic current, static goal
+      weeklyTasks: { current: tasksCompleted, goal: 50 }, // Dynamic current, static goal
+    },
+    insights: [ // Placeholder
+      'You are most productive in the morning.',
+      'Your focus drops after 90 minutes. Try taking short breaks.',
+    ]
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      title: { display: false },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        max: 6,
+        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+        ticks: { color: '#9ca3af' },
+      },
+      x: {
+        grid: { display: false },
+        ticks: { color: '#9ca3af' },
+      },
+    },
+  };
+
   return (
     <div className="stats-page-container">
       <header className="stats-header">
@@ -80,26 +186,23 @@ const StatsPage = () => {
 
       <main className="stats-main-grid">
         <div className="kpi-grid">
-          <KPICard icon={<Zap size={24} />} title="Total Focus Time" value={mockData.kpis.focusTime.value} trend={mockData.kpis.focusTime.trend} />
-          <KPICard icon={<CheckCircle size={24} />} title="Tasks Completed" value={mockData.kpis.tasksCompleted.value} trend={mockData.kpis.tasksCompleted.trend} />
-          <KPICard icon={<Target size={24} />} title="Current Habit Streak" value={mockData.kpis.habitStreak.value} trend={mockData.kpis.habitStreak.trend} />
-          <KPICard icon={<Award size={24} />} title="Avg. Focus Score" value={mockData.kpis.avgFocusScore.value} trend={mockData.kpis.avgFocusScore.trend} />
+          <KPICard icon={<Zap size={24} />} title="Total Focus Time" value={focusTimeStr} trend="+0%" />
+          <KPICard icon={<CheckCircle size={24} />} title="Tasks Completed" value={tasksCompleted} trend="+0%" />
+          <KPICard icon={<Target size={24} />} title="Current Habit Streak" value={mockData.habitStreak.value} trend={mockData.habitStreak.trend} />
+          <KPICard icon={<Award size={24} />} title="Avg. Focus Score" value={`${avgFocusScorePercent}%`} trend="+0%" />
         </div>
 
         <div className="chart-container">
           <h2>Focus Trend</h2>
-          {/* Placeholder for a proper chart library */}
-          <div className="line-chart-placeholder">
-            <svg width="100%" height="100%" viewBox="0 0 300 100" preserveAspectRatio="none">
-              <path d="M0,50 L50,30 L100,45 L150,25 L200,40 L250,60 L300,50" fill="none" stroke="#8a4fff" strokeWidth="2" />
-            </svg>
+          <div className="line-chart-container">
+            <Line options={chartOptions} data={focusTrend} />
           </div>
         </div>
 
         <div className="side-panel">
           <div className="panel-widget">
             <h3>Daily Activity</h3>
-            <ActivityHeatmap data={mockData.activity} />
+            <ActivityHeatmap data={activityData} />
           </div>
 
           <div className="panel-widget">
@@ -113,7 +216,7 @@ const StatsPage = () => {
           <div className="panel-widget">
             <h3>Insights</h3>
             <ul className="insights-list">
-              {mockData.insights.slice(0, 2).map((insight, i) => (
+              {mockData.insights.map((insight, i) => (
                 <li key={i}><Lightbulb size={16} /><span>{insight}</span></li>
               ))}
             </ul>

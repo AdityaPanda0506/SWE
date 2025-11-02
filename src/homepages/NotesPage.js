@@ -1,35 +1,20 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Home, StickyNote, Plus, X } from 'lucide-react';
 import './NotesPage.css';
-
+import { NotesContext } from '../contexts/NotesContext';
 
 const NotesPage = () => {
-  const [notes, setNotes] = useState([
-    { id: 1, content: 'Remember to call mom this weekend', createdAt: new Date(), color: 'yellow' },
-    { id: 2, content: 'Book ideas:\n- Productivity system\n- Morning routines', createdAt: new Date(), color: 'blue' }
-  ]);
+  const { notes, addNote, deleteNote } = useContext(NotesContext);
   const [newNote, setNewNote] = useState('');
   const [isAdding, setIsAdding] = useState(false);
 
-  const colors = ['yellow', 'blue', 'green', 'pink', 'purple'];
-
-  const addNote = () => {
+  const handleAddNote = () => {
     if (newNote.trim()) {
-      const note = {
-        id: Date.now(),
-        content: newNote,
-        createdAt: new Date(),
-        color: colors[Math.floor(Math.random() * colors.length)]
-      };
-      setNotes([note, ...notes]);
+      addNote(newNote);
       setNewNote('');
       setIsAdding(false);
     }
-  };
-
-  const deleteNote = (id) => {
-    setNotes(notes.filter(note => note.id !== id));
   };
 
   return (
@@ -75,7 +60,7 @@ const NotesPage = () => {
                 </button>
                 <button 
                   className="save-btn"
-                  onClick={addNote}
+                  onClick={handleAddNote}
                 >
                   Save Note
                 </button>

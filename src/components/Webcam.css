@@ -1,4 +1,55 @@
-/* Toggle Switch Styles */
+.webcam-feed-container {
+  background-color: var(--secondary-color);
+  border-radius: var(--border-radius);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.webcam-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.webcam-header h4 {
+  margin: 0;
+  font-weight: 500;
+  color: var(--text-secondary-color);
+}
+
+.webcam-header button {
+  background-color: var(--primary-color);
+  color: var(--text-color);
+  border: 1px solid var(--secondary-color);
+  border-radius: 8px;
+  padding: 0.25rem 0.75rem;
+  cursor: pointer;
+}
+
+.webcam-video {
+  width: 100%;
+  max-width: 300px; 
+  height: auto;
+  border-radius: var(--border-radius);
+}
+
+.webcam-off-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 225px; /* Corresponds to a 300px width with 4:3 aspect ratio */
+  background-color: var(--primary-color);
+  border-radius: var(--border-radius);
+  color: var(--text-secondary-color);
+}
+
+.webcam-off-placeholder p {
+  margin-top: 1rem;
+}
+
 .switch {
   position: relative;
   display: inline-block;

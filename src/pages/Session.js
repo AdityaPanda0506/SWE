@@ -1,29 +1,36 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useContext } from 'react';
 import { Search, BrainCircuit } from 'lucide-react';
 import './Session.css';
 
-// Assuming components are in src/components
 import VideoInput from '../components/VideoInput';
 import WebcamFeed from '../components/WebcamFeed';
 import BreakModal from '../components/BreakModal';
 import QuizModal from '../components/QuizModal';
 import SleepModal from '../components/SleepModal';
+import Notes from '../components/Notes';
+import Playlist from '../components/Playlist';
+import { StatsContext } from '../contexts/StatsContext';
 
 const Session = () => {
   const canvasRef = useRef(null);
   const [emotion, setEmotion] = useState("...");
   const [score, setScore] = useState(0);
+  const [learningState, setLearningState] = useState("Focused");
   const [feedback, setFeedback] = useState({ message: "", resource: "" });
   const [breakTime, setBreakTime] = useState(false);
   const [showBreakModal, setShowBreakModal] = useState(false);
   const [showQuizModal, setShowQuizModal] = useState(false);
   const [showSleepModal, setShowSleepModal] = useState(false);
   const [isSleeping, setIsSleeping] = useState(false);
+  const [isCameraOn, setIsCameraOn] = useState(true);
+  const [lastPopupTime, setLastPopupTime] = useState(0);
+  const { logData } = useContext(StatsContext);
 
   useEffect(() => {
+    if (!isCameraOn) return;
     const interval = setInterval(captureAndSendFrame, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [isCameraOn]);
 
   const captureAndSendFrame = async () => {
     if (!canvasRef.current || !document.querySelector('video')) return;
@@ -50,15 +57,29 @@ const Session = () => {
       if (data.emotion && data.score !== undefined) {
         setEmotion(data.emotion);
         setScore(data.score);
+        setLearningState(data.learning_state || "Focused");
         setIsSleeping(data.is_sleeping || false);
 
-        if (data.feedback?.action === "break") {
-          setFeedback({ message: data.feedback.message, resource: data.feedback.resource });
-          setShowBreakModal(true);
-        } else if (data.learning_state === "Confused") {
-          setShowQuizModal(true);
-        } else if (data.is_sleeping) {
-          setShowSleepModal(true);
+        logData({
+          score: data.score,
+          emotion: data.emotion,
+          state: data.learning_state || "Focused",
+        });
+
+        const now = Date.now();
+
+        if (now - lastPopupTime > 2 * 60 * 1000) {
+          if (data.feedback?.action === "break") {
+            setFeedback({ message: data.feedback.message, resource: data.feedback.resource });
+            setShowBreakModal(true);
+            setLastPopupTime(now);
+          // } else if (data.learning_state === "Tired") {
+          //   setShowQuizModal(true);
+          //   setLastPopupTime(now);
+          } else if (data.learning_state === "Confused") {
+            setShowSleepModal(true);
+            setLastPopupTime(now);
+          }
         }
       }
     } catch (err) {
@@ -100,17 +121,26 @@ const Session = () => {
           <VideoInput breakTime={breakTime} />
         </main>
 
-        <aside className="coach-panel">
-          <h2>Your Coach</h2>
-          <WebcamFeed emotion={emotion} score={score} isSleeping={isSleeping} />
+        <aside className="sidebar">
+          <WebcamFeed
+            emotion={emotion}
+            score={score}
+            isSleeping={isSleeping}
+            isCameraOn={isCameraOn}
+            setIsCameraOn={setIsCameraOn}
+          />
           <div className="focus-score-card">
             <h3>Focus Score</h3>
             <div className="focus-score-visual">
-              <div className="focus-score-bar" style={{ width: `${focusScorePercentage}%` }}></div>
+              <div
+                className="focus-score-bar"
+                style={{ width: `${focusScorePercentage}%` }}
+              ></div>
             </div>
             <p>{Math.round(focusScorePercentage)}%</p>
           </div>
-          {isSleeping && <p className="sleep-warning">Sleep Detected!</p>}
+          <Notes />
+          <Playlist />
         </aside>
       </div>
 
@@ -121,7 +151,9 @@ const Session = () => {
           onTakeBreak={handleTakeAction}
         />
       )}
-      {showQuizModal && <QuizModal onTakeQuiz={handleTakeQuiz} onSkip={() => setShowQuizModal(false)} />}
+      {showQuizModal && (
+        <QuizModal onTakeQuiz={handleTakeQuiz} onSkip={() => setShowQuizModal(false)} />
+      )}
       {showSleepModal && <SleepModal onConfirm={handleRest} />}
 
       <canvas ref={canvasRef} style={{ display: 'none' }} />

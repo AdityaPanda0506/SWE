@@ -15,24 +15,33 @@ import Session from './pages/Session';
 import Dashboard from './pages/Dashboard';
 
 import './App.css';
+import { NotesProvider } from './contexts/NotesContext';
+import { StatsProvider } from './contexts/StatsContext';
+import { TodoProvider } from './contexts/TodoContext';
 
 function App() {
   return (
-    <div className="app-container">
-      <main className="main-content">
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/pomodoro" element={<PomodoroPage />} />
-          <Route path="/todo" element={<TodoPage />} />
-          <Route path="/habits" element={<HabitsPage />} />
-          <Route path="/notes" element={<NotesPage />} />
-          <Route path="/stats" element={<StatsPage />} />
-          <Route path="/session" element={<Session />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-        </Routes>
-      </main>
-      <Dock />
-    </div>
+    <NotesProvider>
+      <StatsProvider>
+        <TodoProvider>
+          <div className="app-container">
+            <main className="main-content">
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/pomodoro" element={<PomodoroPage />} />
+                <Route path="/todo" element={<TodoPage />} />
+                <Route path="/habits" element={<HabitsPage />} />
+                <Route path="/notes" element={<NotesPage />} />
+                <Route path="/stats" element={<StatsPage />} />
+                <Route path="/session" element={<Session />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+              </Routes>
+            </main>
+            <Dock />
+          </div>
+        </TodoProvider>
+      </StatsProvider>
+    </NotesProvider>
   );
 }
 

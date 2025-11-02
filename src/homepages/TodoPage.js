@@ -1,18 +1,72 @@
 import React, { useState, useMemo } from 'react';
-import { Plus, Trash2, Edit, Search, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Trash2, Edit, Search } from 'lucide-react';
 import './TodoPage.css';
 
 const initialTodos = [
   { id: 1, text: 'Finalize Q3 marketing report', completed: false, priority: 'high', category: 'Work', dueDate: '2025-07-15' },
   { id: 2, text: 'Schedule team offsite event', completed: false, priority: 'medium', category: 'Work', dueDate: '2025-07-22' },
   { id: 3, text: 'Book flights for vacation', completed: true, priority: 'high', category: 'Personal', dueDate: '2025-06-30' },
-  { id: 4, text: 'Renew gym membership', completed: false, priority: 'low', category: 'Personal', dueDate: '2025-08-01' },
-  { id: 5, text: 'Update project documentation', completed: false, priority: 'medium', category: 'Work', dueDate: '2025-07-18' },
 ];
+
+const TaskModal = ({ isOpen, onClose, onSave, task }) => {
+  const [formData, setFormData] = useState(task);
+
+  React.useEffect(() => {
+    setFormData(task);
+  }, [task]);
+
+  if (!isOpen) return null;
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSave(formData);
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <h2>{task.id ? 'Edit Task' : 'Add New Task'}</h2>
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label>Task</label>
+            <input type="text" name="text" value={formData.text} onChange={handleChange} required />
+          </div>
+          <div className="form-group">
+            <label>Priority</label>
+            <select name="priority" value={formData.priority} onChange={handleChange}>
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+          <div className="form-group">
+            <label>Category</label>
+            <input type="text" name="category" value={formData.category} onChange={handleChange} />
+          </div>
+          <div className="form-group">
+            <label>Due Date</label>
+            <input type="date" name="dueDate" value={formData.dueDate} onChange={handleChange} />
+          </div>
+          <div className="modal-actions">
+            <button type="button" onClick={onClose} className="cancel-btn">Cancel</button>
+            <button type="submit" className="save-btn">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
 
 const TodoPage = () => {
   const [todos, setTodos] = useState(initialTodos);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
 
   const filteredTodos = useMemo(() =>
     todos.filter(todo =>
@@ -29,6 +83,25 @@ const TodoPage = () => {
     setTodos(todos.filter(todo => todo.id !== id));
   };
 
+  const handleOpenModal = (task = null) => {
+    setEditingTask(task || { text: '', priority: 'medium', category: '', dueDate: '' });
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingTask(null);
+  };
+
+  const handleSaveTask = (taskData) => {
+    if (taskData.id) {
+      setTodos(todos.map(t => t.id === taskData.id ? taskData : t));
+    } else {
+      setTodos([...todos, { ...taskData, id: Date.now(), completed: false }]);
+    }
+    handleCloseModal();
+  };
+
   return (
     <div className="todo-table-container">
       <header className="todo-table-header">
@@ -43,7 +116,7 @@ const TodoPage = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <button className="add-task-button">
+          <button className="add-task-button" onClick={() => handleOpenModal()}>
             <Plus size={16} />
             Add New Task
           </button>
@@ -83,7 +156,7 @@ const TodoPage = () => {
                 </td>
                 <td className="col-due-date">{todo.dueDate}</td>
                 <td className="col-actions">
-                  <button className="action-btn edit-btn"><Edit size={16} /></button>
+                  <button className="action-btn edit-btn" onClick={() => handleOpenModal(todo)}><Edit size={16} /></button>
                   <button className="action-btn delete-btn" onClick={() => deleteTodo(todo.id)}><Trash2 size={16} /></button>
                 </td>
               </tr>
@@ -96,6 +169,13 @@ const TodoPage = () => {
           </div>
         )}
       </div>
+
+      <TaskModal 
+        isOpen={isModalOpen} 
+        onClose={handleCloseModal} 
+        onSave={handleSaveTask} 
+        task={editingTask || { text: '', priority: 'medium', category: '', dueDate: '' }}
+      />
     </div>
   );
 };
